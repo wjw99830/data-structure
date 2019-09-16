@@ -1,5 +1,19 @@
 {
   "dependencies": {
     "typescript": "^3.6.3"
-  }
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.18",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "name": "data-structure",
+  "version": "1.0.0",
+  "main": "none",
+  "repository": "ssh://git@github.com/wjw99830/data-structure.git",
+  "author": "wjw <942404649@qq.com>",
+  "license": "MIT"
 }
