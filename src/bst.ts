@@ -1,55 +1,115 @@
 export class BinarySearchTree<T> {
-  value: T;
-  parent?: BinarySearchTree<T>;
-  left?: BinarySearchTree<T>;
-  right?: BinarySearchTree<T>;
-  private lessThan: LessThan<T>;
-  constructor(value: T, lessThan: LessThan<T> = (a, b) => a < b) {
-    this.value = value;
-    this.lessThan = lessThan;
+  protected root?: BinarySearchTreeNode<T>;
+  private equal: Equal<T> = (a, b) => a === b;
+  constructor(
+    protected lessThan: LessThan<T> = (a, b) => a < b,
+  ) {}
+  asRoot(value: T, equalFn: Equal<T> = this.equal): BinarySearchTree<T> {
+    const subTree = new BinarySearchTree<T>();
+    subTree.root = this.root && this.root.get(value, equalFn);
+    return subTree;
   }
-  // O(log(n))
+  contains(value: T, equalFn: Equal<T> = this.equal) {
+    return !!this.root && !!this.root.get(value, equalFn);
+  }
   insert(value: T) {
-    if (this.lessThan(this.value, value)) {
-      if (!this.left) {
-        this.left = new BinarySearchTree(value, this.lessThan);
-        this.left.parent = this;
-      } else {
-        this.left.insert(value);
-      }
+    if (this.root) {
+      this.root.insert(value);
     } else {
-      if (!this.right) {
-        this.right = new BinarySearchTree(value, this.lessThan);
-        this.right.parent = this;
+      this.root = new BinarySearchTreeNode(value, this.lessThan);
+    }
+    return this;
+  }
+  traverse(fn: TraverseHandler<T>) {
+    if (this.root) {
+      this.root.traverse(fn);
+    }
+    return this;
+  }
+  remove(value: T) {
+    if (this.root) {
+      if (this.equal(this.root.value, value) && !this.root.left && this.root.right) {
+        this.root = undefined;
       } else {
-        this.right.insert(value);
+        this.root.remove(value);
       }
     }
     return this;
   }
+}
+export class BinarySearchTreeNode<T> {
+  left?: BinarySearchTreeNode<T>;
+  right?: BinarySearchTreeNode<T>;
+  constructor(
+    public value: T,
+    private lessThan: LessThan<T>
+  ) {}
   // O(log(n))
-  contains(value: T, parent?: BinarySearchTree<T>): boolean {
-    if (this.value === value) {
-      return true;
-    } else if (this.left && this.lessThan(this.value, value)) {
-      return this.left.contains(value);
-    } else if (this.right) {
-      return this.right.contains(value);
+  insert(value: T) {
+    let newNode: BinarySearchTreeNode<T>;
+    if (this.lessThan(value, this.value)) {
+      if (this.left) {
+        newNode = this.left.insert(value);
+      } else {
+        newNode = new BinarySearchTreeNode(value, this.lessThan);
+        this.left = newNode;
+      }
     } else {
-      return false;
+      if (this.right) {
+        newNode = this.right.insert(value);
+      } else {
+        newNode = new BinarySearchTreeNode(value, this.lessThan);
+        this.right = newNode;
+      }
+    }
+    return newNode;
+  }
+  // O(log(n))
+  remove(value: T, parent?: BinarySearchTreeNode<T>) {
+    if (this.value === value) {
+      if (!this.left && !this.right && parent) {
+        parent.left === this
+          ? (parent.left = undefined)
+          : (parent.right = undefined)
+      } else if (this.left && !this.right) {
+        this.value = this.left.value;
+        this.left.remove(this.left.value);
+      } else if (this.right && !this.left) {
+        this.value = this.right.value;
+        this.right.remove(this.right.value);
+      } else if (this.left && this.right) {
+        // replace: first node of right subtree by in-order
+        const replace = this.right.left || this.right;
+        this.value = replace.value;
+        replace.remove(replace.value, this.right.left ? this.right : this);
+      }
+    } else if (this.lessThan(value, this.value) && this.left) {
+      this.left.remove(value);
+    } else if (this.lessThan(this.value, value) && this.right) {
+      this.right.remove(value);
+    }
+  }
+  // O(n)
+  traverse(fn: TraverseHandler<T>) {
+    if (this.left) {
+      this.left.traverse(fn);
+    }
+    fn(this.value);
+    if (this.right) {
+      this.right.traverse(fn);
     }
   }
   // O(log(n))
-  remove(value: T) {
-    if (this.value === value) {
-      if (this.parent) {
-        this.parent.left === this
-          ? (this.parent.left = undefined)
-          : (this.parent.right = undefined);
-      } else {
-        // TODO: remove root node. (wrap a root node)
-      }
+  get(value: T, equalFn?: Equal<T>): BinarySearchTreeNode<T> | undefined {
+    if (equalFn ? equalFn(this.value, value) : this.value === value) {
+      return this;
+    } else if (this.lessThan(this.value, value) && this.right) {
+      return this.right.get(value);
+    } else if (this.lessThan(value, this.value) && this.left) {
+      return this.left.get(value);
     }
   }
 }
+type TraverseHandler<T> = (value: T) => any;
 type LessThan<T> = (a: T, b: T) => boolean;
+type Equal<T> = LessThan<T>;
