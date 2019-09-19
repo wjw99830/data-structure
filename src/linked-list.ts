@@ -13,6 +13,18 @@ export class LinkedList<T> {
     }
     return this;
   }
+  // O(1)
+  prepend(value: T) {
+    const node = new LinkedListNode(value);
+    if (this.tail) {
+      const oldHead = this.head!;
+      node.next = oldHead;
+      this.head = node;
+    } else {
+      this.head = this.tail = node;
+    }
+    return this;
+  }
   // O(n)
   contains(value: T) {
     let ptr: LinkedListNode<T> | undefined = this.head;
