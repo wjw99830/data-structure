@@ -72,14 +72,31 @@ export class BinarySearchTreeNode<T> {
           ? (parent.left = undefined)
           : (parent.right = undefined)
       } else if (this.left && !this.right) {
-        this.value = this.left.value;
-        this.left.remove(this.left.value);
+        let replaceParent: BinarySearchTreeNode<T> = this;
+        // replace: LAST node of right subtree by in-order
+        let replace: BinarySearchTreeNode<T> = this.left;
+        while (replace.right) {
+          replaceParent = replace;
+          replace = replace.right;
+        }
+        this.value = replace.value;
+        replace.remove(replace.value, replaceParent);
       } else if (this.right && !this.left) {
-        this.value = this.right.value;
-        this.right.remove(this.right.value);
+        let replaceParent: BinarySearchTreeNode<T> = this;
+        // replace: FIRST node of right subtree by in-order
+        let replace: BinarySearchTreeNode<T> = this.right;
+        while (replace.left) {
+          replaceParent = replace;
+          replace = replace.left;
+        }
+        this.value = replace.value;
+        replace.remove(replace.value, replaceParent);
       } else if (this.left && this.right) {
-        // replace: first node of right subtree by in-order
-        const replace = this.right.left || this.right;
+        // replace: FIRST node of right subtree by in-order
+        let replace: BinarySearchTreeNode<T> = this.right;
+        while (replace.left) {
+          replace = replace.left;
+        }
         this.value = replace.value;
         replace.remove(replace.value, this.right.left ? this.right : this);
       }

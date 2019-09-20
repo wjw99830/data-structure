@@ -45,8 +45,6 @@ describe('remove', () => {
     const tree = new BinarySearchTree<number>();
     tree.insert(3).insert(5).insert(1).insert(2).insert(9).insert(6).insert(8);
     let seq = '';
-    // @ts-ignore
-    console.log(JSON.stringify(tree.root, null, 2));
     tree.traverse(v => seq += v);
     expect(seq).toBe('1235689');
     tree.remove(3);
